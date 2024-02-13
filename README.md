@@ -1,2 +1,9 @@
 # UD_ENGINE
- Basic Game Engine Built Using Three.JS
+
+LEARNING THREE JS SO MAKING A BASIC GAME ENGINE
+
+Basic Game Engine Built Using Three.JS
+
+NPM I
+NPM RUN BUILD
+NPM RUN START
