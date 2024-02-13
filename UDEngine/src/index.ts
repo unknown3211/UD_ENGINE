@@ -1,17 +1,18 @@
-import { CharacterControls } from './characterControls';
+import { CharacterControls } from './ts/characterControls';
 import * as THREE from 'three'
 import { CameraHelper } from 'three'; // Not used yet //
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader' // Not used yet //
-import { logCharacterPosition } from './dev'; // Used For Logging Character Position //
+import { logCharacterPosition } from './ts/dev'; // Used For Logging Character Position //
+import { generateTestModel, generateTestCouch, generateTestHouse } from './ts/objects';
 
 // SCENE
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xa8def0);
+export var scene = new THREE.Scene();
+scene.background = new THREE.Color(0x222831);
 
 // CAMERA
-const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+export var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.y = 5;
 camera.position.z = 5;
 camera.position.x = 0;
@@ -39,7 +40,9 @@ orbitControls.update();
 // Call Functions Start //
 light()
 generateFloor()
-generateTestMap()
+generateTestModel()
+generateTestCouch()
+generateTestHouse()
 // Call Functions End //
 
 // MODEL WITH ANIMATIONS
@@ -132,11 +135,4 @@ function light() {
     dirLight.shadow.mapSize.width = 4096;
     dirLight.shadow.mapSize.height = 4096;
     scene.add(dirLight);
-}
-
-function generateTestMap() {
-    new GLTFLoader().load('models/scene.gltf', function (gltf) {
-        gltf.scene.position.set(23.938522879445152, 0.05, -5.159304852902911); // Vector3 Coords //
-        scene.add(gltf.scene);
-    });
 }
