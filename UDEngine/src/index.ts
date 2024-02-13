@@ -4,6 +4,7 @@ import { CameraHelper } from 'three'; // Not used yet //
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader' // Not used yet //
+import { logCharacterPosition } from './dev'; // Used For Logging Character Position //
 
 // SCENE
 const scene = new THREE.Scene();
@@ -38,10 +39,11 @@ orbitControls.update();
 // Call Functions Start //
 light()
 generateFloor()
+generateTestMap()
 // Call Functions End //
 
 // MODEL WITH ANIMATIONS
-var characterControls: CharacterControls
+export var characterControls: CharacterControls
 new GLTFLoader().load('models/Soldier.glb', function (gltf) {
     const model = gltf.scene;
     model.traverse(function (object: any) {
@@ -56,7 +58,7 @@ new GLTFLoader().load('models/Soldier.glb', function (gltf) {
         animationsMap.set(a.name, mixer.clipAction(a))
     })
 
-    characterControls = new CharacterControls(model, mixer, animationsMap, orbitControls, camera,  'Idle')
+    characterControls = new CharacterControls(model, mixer, animationsMap, orbitControls, camera,  'Idle');
 });
 
 // CONTROL KEYS
@@ -78,6 +80,7 @@ function animate() {
     let mixerUpdateDelta = clock.getDelta();
     if (characterControls) {
         characterControls.update(mixerUpdateDelta, keysPressed);
+        //logCharacterPosition(); // Unhash If Want To Log Character Position //
     }
     orbitControls.update()
     renderer.render(scene, camera);
@@ -93,6 +96,8 @@ function onWindowResize() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
 window.addEventListener('resize', onWindowResize);
+
+// Adds A Floor To The Scene //
 
 function generateFloor() {
     const textureLoader = new THREE.TextureLoader();
@@ -110,6 +115,8 @@ function generateFloor() {
     scene.add(floor)
 }
 
+// Adds light To The Scene //
+
 function light() {
     scene.add(new THREE.AmbientLight(0xffffff, 0.7))
 
@@ -125,4 +132,11 @@ function light() {
     dirLight.shadow.mapSize.width = 4096;
     dirLight.shadow.mapSize.height = 4096;
     scene.add(dirLight);
+}
+
+function generateTestMap() {
+    new GLTFLoader().load('models/scene.gltf', function (gltf) {
+        gltf.scene.position.set(23.938522879445152, 0.05, -5.159304852902911); // Vector3 Coords //
+        scene.add(gltf.scene);
+    });
 }
