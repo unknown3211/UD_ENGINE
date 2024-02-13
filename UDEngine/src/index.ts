@@ -1,9 +1,9 @@
 import { CharacterControls } from './characterControls';
 import * as THREE from 'three'
-import { CameraHelper } from 'three';
+import { CameraHelper } from 'three'; // Not used yet //
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader' // Not used yet //
 
 // SCENE
 const scene = new THREE.Scene();
@@ -28,13 +28,17 @@ orbitControls.minDistance = 5
 orbitControls.maxDistance = 15
 orbitControls.enablePan = false
 orbitControls.maxPolarAngle = Math.PI / 2 - 0.05
+orbitControls.mouseButtons = {
+    LEFT: THREE.MOUSE.RIGHT, // Swapped Left For Right Mouse Button For Camera Movement //
+    MIDDLE: THREE.MOUSE.MIDDLE, // Moves Camera In & Out //
+    RIGHT: THREE.MOUSE.LEFT // Swapped Left For Right Mouse Button For Camera Movement //
+};
 orbitControls.update();
 
-// LIGHTS
+// Call Functions Start //
 light()
-
-// FLOOR
 generateFloor()
+// Call Functions End //
 
 // MODEL WITH ANIMATIONS
 var characterControls: CharacterControls
@@ -91,39 +95,19 @@ function onWindowResize() {
 window.addEventListener('resize', onWindowResize);
 
 function generateFloor() {
-    // TEXTURES
     const textureLoader = new THREE.TextureLoader();
-    const placeholder = textureLoader.load("./textures/placeholder/placeholder.png");
-    const sandBaseColor = textureLoader.load("./textures/sand/Sand 002_COLOR.jpg");
-    const sandNormalMap = textureLoader.load("./textures/sand/Sand 002_NRM.jpg");
-    const sandHeightMap = textureLoader.load("./textures/sand/Sand 002_DISP.jpg");
-    const sandAmbientOcclusion = textureLoader.load("./textures/sand/Sand 002_OCC.jpg");
+    const placeholder = textureLoader.load("./textures/ground/placeholder.png");
 
     const WIDTH = 80
     const LENGTH = 80
 
     const geometry = new THREE.PlaneGeometry(WIDTH, LENGTH, 512, 512);
-    const material = new THREE.MeshStandardMaterial(
-        {
-            map: sandBaseColor, normalMap: sandNormalMap,
-            displacementMap: sandHeightMap, displacementScale: 0.1,
-            aoMap: sandAmbientOcclusion
-        })
-    wrapAndRepeatTexture(material.map)
-    wrapAndRepeatTexture(material.normalMap)
-    wrapAndRepeatTexture(material.displacementMap)
-    wrapAndRepeatTexture(material.aoMap)
-    // const material = new THREE.MeshPhongMaterial({ map: placeholder})
+    const material = new THREE.MeshStandardMaterial({ map: placeholder })
 
     const floor = new THREE.Mesh(geometry, material)
     floor.receiveShadow = true
     floor.rotation.x = - Math.PI / 2
     scene.add(floor)
-}
-
-function wrapAndRepeatTexture (map: THREE.Texture) {
-    map.wrapS = map.wrapT = THREE.RepeatWrapping
-    map.repeat.x = map.repeat.y = 10
 }
 
 function light() {
@@ -141,5 +125,4 @@ function light() {
     dirLight.shadow.mapSize.width = 4096;
     dirLight.shadow.mapSize.height = 4096;
     scene.add(dirLight);
-    // scene.add( new THREE.CameraHelper(dirLight.shadow.camera))
 }
