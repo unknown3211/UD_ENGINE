@@ -5,11 +5,13 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader' // Not used yet //
 import { logCharacterPosition } from './ts/dev'; // Used For Logging Character Position //
-import { generateTestModel, generateTestCouch, generateTestHouse } from './ts/objects';
+import { generateTestModel, generateTestHouse, generateTestCouch } from './ts/objects';
+import * as CANNON from 'cannon-es'
 
 // SCENE
 export var scene = new THREE.Scene();
 scene.background = new THREE.Color(0x222831);
+export var world = new CANNON.World()
 
 // CAMERA
 export var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);

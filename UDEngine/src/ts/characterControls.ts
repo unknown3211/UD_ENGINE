@@ -27,6 +27,10 @@ export class CharacterControls {
     runVelocity = 5
     walkVelocity = 2
 
+    // Jumping //
+    private velocityY = 0;
+    private canJump = true;
+
     constructor(model: THREE.Group,
         mixer: THREE.AnimationMixer, animationsMap: Map<string, THREE.AnimationAction>,
         orbitControl: OrbitControls, camera: THREE.Camera,
@@ -101,7 +105,7 @@ export class CharacterControls {
             this.model.position.z += moveZ
             this.updateCameraTarget(moveX, moveZ)
         }
-        
+            
         if (keysPressed['9']) { // HTML TEST //
             if (!wasKeyPressed) {
                 generateHTMLTest();
@@ -109,6 +113,21 @@ export class CharacterControls {
             wasKeyPressed = true;
         } else {
             wasKeyPressed = false;
+        }
+
+        if (keysPressed[" "] && this.canJump) { // Space Bar Jumping //
+            this.velocityY = 5;
+            this.canJump = false;
+        }
+    
+        this.velocityY -= 9.8 * delta;
+        this.model.position.y += this.velocityY * delta;
+        this.updateCameraTarget(0, this.velocityY * delta);
+
+        if (this.model.position.y <= 0) {
+            this.velocityY = 0; 
+            this.canJump = true;
+            this.model.position.y = 0;
         }
     }
 
