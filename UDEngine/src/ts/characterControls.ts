@@ -2,7 +2,10 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { A, D, DIRECTIONS, S, W, SPACE } from './keybinds'
 import { generateHTMLTest } from '../ui/name';
+import * as CANNON from 'cannon-es'
+import { scene, world } from '../index'
 let wasKeyPressed = false;
+let jKeyPressed = false;
 
 export class CharacterControls {
 
@@ -115,11 +118,10 @@ export class CharacterControls {
             wasKeyPressed = false;
         }
 
-        if (keysPressed[SPACE] && this.canJump) {
+        if (keysPressed[SPACE] && this.canJump) { // JUMPING //
             this.velocityY = 5;
             this.canJump = false;
         }
-    
         this.velocityY -= 9.8 * delta;
         this.model.position.y += this.velocityY * delta;
         this.updateCameraTarget(0, this.velocityY * delta);
@@ -128,6 +130,41 @@ export class CharacterControls {
             this.velocityY = 0; 
             this.canJump = true;
             this.model.position.y = 0;
+        }
+
+        if (keysPressed["j"]) { // BOMB NEEDS TONS OF WORK BUT ITS STARTED //
+            if (!jKeyPressed) {
+                const particleRadius = 0.3;
+                const particleShape = new CANNON.Sphere(particleRadius);
+                const particleBody = new CANNON.Body({ mass: 1, shape: particleShape });
+                const playerPosition = new CANNON.Vec3(this.model.position.x, this.model.position.y, this.model.position.z);
+                particleBody.position.copy(playerPosition);
+        
+                const placeSpeed = 10;
+                const playerDirection = new THREE.Vector3();
+                this.model.getWorldDirection(playerDirection);
+                const cannonDirection = new CANNON.Vec3(-playerDirection.x, -playerDirection.y, -playerDirection.z);
+                particleBody.velocity.copy(cannonDirection.scale(placeSpeed));
+                particleBody.velocity.x += 5;
+                particleBody.velocity.y += 100;
+        
+                world.addBody(particleBody);
+                console.log('Bomb Planted!');
+                const textureLoader = new THREE.TextureLoader();
+                const BaseColor = textureLoader.load("./textures/c4/weapon_c4_baseColor.png");
+                const MetallicRough = textureLoader.load("./textures/c4/weapon_c4_metallicRoughness.png");
+                const Normal = textureLoader.load("./textures/c4/weapon_c4_normal.png");
+                const particleGeometry = new THREE.SphereGeometry(particleRadius);
+                const particleMaterial = new THREE.MeshStandardMaterial({map: BaseColor, metalnessMap: MetallicRough, roughnessMap: MetallicRough, normalMap: Normal});
+                const particleMesh = new THREE.Mesh(particleGeometry, particleMaterial);
+        
+                particleMesh.position.copy(new THREE.Vector3(particleBody.position.x, particleBody.position.y, particleBody.position.z));
+        
+                scene.add(particleMesh);
+                jKeyPressed = true;
+            }
+        } else {
+            jKeyPressed = false;
         }
     }
 
@@ -143,7 +180,7 @@ export class CharacterControls {
         this.orbitControl.target = this.cameraTarget
     }
 
-    private directionOffset(keysPressed: any) {
+    private directionOffset(keysPressed: any) { // DIRECTIONAL MOVEMENT //
         var directionOffset = 0 // w
 
         if (keysPressed[W]) {

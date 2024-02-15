@@ -5,32 +5,23 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader"; // Not used yet //
 import { logCharacterPosition } from "./ts/dev"; // Used For Logging Character Position //
-import {
-  generateTestModel,
-  generateTestHouse,
-  generateTestCouch,
-} from "./ts/objects";
+import { generateTestModel, generateTestHouse, generateTestCouch } from "./ts/objects";
 import * as CANNON from "cannon-es";
 import CannonDebugger from "cannon-es-debugger";
 import { World } from "cannon-es";
 
 // SCENE
 export var scene = new THREE.Scene();
-scene.background = new THREE.Color(0x222831);
-export var world = new CANNON.World();
+scene.background = new THREE.Color(0x1d1e20);
+export var world = new CANNON.World({});
 
-const cannonDebugger = CannonDebugger(scene, world, { // ABLE TO SEE PHYSICS //
+const cannonDebugger = CannonDebugger(scene, world, {  // ABLE TO SEE PHYSICS //
   color: 0xaee2ff,
   scale: 3,
 });
 
 // CAMERA
-export var camera = new THREE.PerspectiveCamera(
-  45,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
-);
+export var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.y = 5;
 camera.position.z = 5;
 camera.position.x = 0;
@@ -68,45 +59,36 @@ export var characterControls: CharacterControls;
 let playerBody: CANNON.Body;
 
 new GLTFLoader().load("models/Soldier.glb", function (gltf) {
-    const model = gltf.scene;
-    model.traverse(function (object: any) {
+  const model = gltf.scene;
+  model.traverse(function (object: any) {
     if (object.isMesh) object.castShadow = true;
-    });
-    scene.add(model);
+  });
+  scene.add(model);
 
-    const gltfAnimations: THREE.AnimationClip[] = gltf.animations;
-    const mixer = new THREE.AnimationMixer(model);
-    const animationsMap: Map<string, THREE.AnimationAction> = new Map();
-    gltfAnimations
+  const gltfAnimations: THREE.AnimationClip[] = gltf.animations;
+  const mixer = new THREE.AnimationMixer(model);
+  const animationsMap: Map<string, THREE.AnimationAction> = new Map();
+  gltfAnimations
     .filter((a) => a.name != "TPose")
     .forEach((a: THREE.AnimationClip) => {
-    animationsMap.set(a.name, mixer.clipAction(a));
+      animationsMap.set(a.name, mixer.clipAction(a));
     });
 
-    characterControls = new CharacterControls(
-        model,
-        mixer,
-        animationsMap,
-        orbitControls,
-        camera,
-        "Idle"
-    );
+  characterControls = new CharacterControls(model, mixer, animationsMap, orbitControls, camera, "Idle");
 
-    const radius = 1;
-    playerBody = new CANNON.Body({
-        mass: 5,
-        position: new CANNON.Vec3(0, radius, 0),
-        shape: new CANNON.Sphere(radius)
-    });
-    world.addBody(playerBody);
+  const radius = 1;
+  const height = 1.2;
+  playerBody = new CANNON.Body({
+    mass: 5,
+    position: new CANNON.Vec3(0, height / 2, 0),
+    shape: new CANNON.Cylinder(radius, radius, height, 10),
+  });
+  //world.addBody(playerBody); // Unhash If Want To Add Physics Cylinder To Character //
 });
 
 // CONTROL KEYS
 const keysPressed = {};
-document.addEventListener(
-  "keydown",
-  (event) => {
-    // Run Toggle //
+document.addEventListener("keydown", (event) => { // Run Toggle //
     if (event.shiftKey && characterControls) {
       characterControls.switchRunToggle();
     } else {
@@ -115,9 +97,7 @@ document.addEventListener(
   },
   false
 );
-document.addEventListener(
-  "keyup",
-  (event) => {
+document.addEventListener("keyup", (event) => {
     (keysPressed as any)[event.key.toLowerCase()] = false;
   },
   false
@@ -127,17 +107,23 @@ const clock = new THREE.Clock();
 const timeStep = 1 / 60;
 // ANIMATE
 function animate() {
-    let mixerUpdateDelta = clock.getDelta();
-    if (characterControls && characterControls.model ) {
-        characterControls.update(mixerUpdateDelta, keysPressed);
-        playerBody.position.copy(new CANNON.Vec3(characterControls.model.position.x, characterControls.model.position.y, characterControls.model.position.z));
-        //logCharacterPosition(); // Unhash If Want To Log Character Position //
-    }
-    orbitControls.update();
-    world.step(timeStep);
-    cannonDebugger.update();
-    renderer.render(scene, camera);
-    requestAnimationFrame(animate);
+  let mixerUpdateDelta = clock.getDelta();
+  if (characterControls && characterControls.model) {
+    characterControls.update(mixerUpdateDelta, keysPressed);
+    playerBody.position.copy(
+      new CANNON.Vec3(
+        characterControls.model.position.x,
+        characterControls.model.position.y,
+        characterControls.model.position.z
+      )
+    );
+    //logCharacterPosition(); // Unhash If Want To Log Character Position //
+  }
+  orbitControls.update();
+  world.step(timeStep);
+  cannonDebugger.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
 }
 document.body.appendChild(renderer.domElement);
 animate();
@@ -189,8 +175,7 @@ function light() {
 
 // Test Box OBJECT //
 
-const testBoxBody = new CANNON.Body({
-  // COLLISIONS //
+const testBoxBody = new CANNON.Body({   // COLLISIONS //
   mass: 1,
   shape: new CANNON.Box(new CANNON.Vec3(0.25, 0.25, 0.25)),
   fixedRotation: true,
