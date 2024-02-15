@@ -7,11 +7,18 @@ import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader' // Not used yet
 import { logCharacterPosition } from './ts/dev'; // Used For Logging Character Position //
 import { generateTestModel, generateTestHouse, generateTestCouch } from './ts/objects';
 import * as CANNON from 'cannon-es'
+import CannonDebugger from 'cannon-es-debugger';
+import { World } from 'cannon-es'
 
 // SCENE
 export var scene = new THREE.Scene();
 scene.background = new THREE.Color(0x222831);
 export var world = new CANNON.World()
+
+const cannonDebugger = CannonDebugger(scene, world, { // ABLE TO SEE PHYSICS //
+    color: 0xAEE2FF,
+    scale: 3,
+})  
 
 // CAMERA
 export var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -47,7 +54,7 @@ generateTestCouch()
 generateTestHouse()
 // Call Functions End //
 
-// MODEL WITH ANIMATIONS
+// MODEL WITH ANIMATIONS //
 export var characterControls: CharacterControls
 new GLTFLoader().load('models/Soldier.glb', function (gltf) {
     const model = gltf.scene;
@@ -68,7 +75,7 @@ new GLTFLoader().load('models/Soldier.glb', function (gltf) {
 
 // CONTROL KEYS
 const keysPressed = {  }
-document.addEventListener('keydown', (event) => {
+document.addEventListener('keydown', (event) => { // Run Toggle //
     if (event.shiftKey && characterControls) {
         characterControls.switchRunToggle()
     } else {
@@ -80,6 +87,7 @@ document.addEventListener('keyup', (event) => {
 }, false);
 
 const clock = new THREE.Clock();
+const timeStep = 1 / 60;
 // ANIMATE
 function animate() {
     let mixerUpdateDelta = clock.getDelta();
@@ -88,6 +96,8 @@ function animate() {
         //logCharacterPosition(); // Unhash If Want To Log Character Position //
     }
     orbitControls.update()
+    world.step(timeStep);
+    cannonDebugger.update() 
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
 }
@@ -138,3 +148,24 @@ function light() {
     dirLight.shadow.mapSize.height = 4096;
     scene.add(dirLight);
 }
+
+// Test Box OBJECT // 
+
+const testBoxBody = new CANNON.Body({ // COLLISIONS //
+    mass: 1,
+    shape: new CANNON.Box(new CANNON.Vec3(0.25, 0.25, 0.25)),
+    fixedRotation: true,
+    position: new CANNON.Vec3(0.9936447767350833, 1, 3.0149588759059)
+});
+world.addBody(testBoxBody);
+
+const testBox = new THREE.Mesh( // Box //
+    new THREE.BoxGeometry(1, 1, 1),
+    new THREE.MeshBasicMaterial({ color: 0xff0000 })
+);
+testBox.position.set(1, 1, 3);
+scene.add(testBox);
+
+testBoxBody.addEventListener('collide', () => {
+    console.log('Box Collided')
+});

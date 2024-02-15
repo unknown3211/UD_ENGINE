@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import { A, D, DIRECTIONS, S, W } from './keybinds'
+import { A, D, DIRECTIONS, S, W, SPACE } from './keybinds'
 import { generateHTMLTest } from '../ui/name';
 let wasKeyPressed = false;
 
@@ -115,7 +115,7 @@ export class CharacterControls {
             wasKeyPressed = false;
         }
 
-        if (keysPressed[" "] && this.canJump) { // Space Bar Jumping //
+        if (keysPressed[SPACE] && this.canJump) {
             this.velocityY = 5;
             this.canJump = false;
         }
