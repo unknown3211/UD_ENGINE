@@ -83,7 +83,7 @@ new GLTFLoader().load("models/Soldier.glb", function (gltf) {
     position: new CANNON.Vec3(0, height / 2, 0),
     shape: new CANNON.Cylinder(radius, radius, height, 10),
   });
-  //world.addBody(playerBody); // Unhash If Want To Add Physics Cylinder To Character //
+  world.addBody(playerBody); // Unhash If Want To Add Physics Cylinder To Character //
 });
 
 // CONTROL KEYS
@@ -173,7 +173,7 @@ function light() {
   scene.add(dirLight);
 }
 
-// Test Box OBJECT //
+// Test Box OBJECT // --- 03/31/2024 -- Detecting Collisions //
 
 const testBoxBody = new CANNON.Body({   // COLLISIONS //
   mass: 1,
@@ -192,4 +192,12 @@ scene.add(testBox);
 
 testBoxBody.addEventListener("collide", () => {
   console.log("Box Collided");
+  setTimeout(deleteObject);
 });
+
+export function deleteObject() {
+  if (world.bodies.includes(testBoxBody)) {
+    world.removeBody(testBoxBody);
+  }
+  scene.remove(testBox);
+}
