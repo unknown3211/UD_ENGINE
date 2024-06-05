@@ -2,8 +2,10 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { A, D, DIRECTIONS, S, W, SPACE } from './keybinds'
 import { generateHTMLTest } from '../ui/name';
+import Test from '../ui/test';
 import * as CANNON from 'cannon-es'
 import { scene, world } from '../index'
+import { deleteObject } from './objects';
 let wasKeyPressed = false;
 let jKeyPressed = false;
 
@@ -18,6 +20,7 @@ export class CharacterControls {
     // state
     toggleRun: boolean = true
     currentAction: string
+    isPlayerFrozen: boolean = false
     
     // temporary data
     walkDirection = new THREE.Vector3()
@@ -56,7 +59,15 @@ export class CharacterControls {
         this.toggleRun = !this.toggleRun
     }
 
+    public setPlayerFrozen(frozen: boolean) {  // FREEZE PLAYER //
+        this.isPlayerFrozen = frozen;
+    }
+
     public update(delta: number, keysPressed: any) {
+        if (this.isPlayerFrozen) { // CHECK IF PLAYER IS FROZEN //
+            return;
+        }
+
         const directionPressed = DIRECTIONS.some(key => keysPressed[key] == true)
 
         var play = '';
@@ -111,7 +122,7 @@ export class CharacterControls {
             
         if (keysPressed['9']) { // HTML TEST //
             if (!wasKeyPressed) {
-                generateHTMLTest();
+                Test();
             }
             wasKeyPressed = true;
         } else {
@@ -132,7 +143,7 @@ export class CharacterControls {
             this.model.position.y = 0;
         }
 
-        if (keysPressed["j"]) { // BOMB NEEDS TONS OF WORK BUT ITS STARTED //
+        if (keysPressed["j"]) { // BOMB -- 03/31/2024 -- Added DeleteObject After 2seconds (will be when to add particle effect and sound) //
             if (!jKeyPressed) {
                 const particleRadius = 0.3;
                 const particleShape = new CANNON.Sphere(particleRadius);
@@ -162,6 +173,7 @@ export class CharacterControls {
         
                 scene.add(particleMesh);
                 jKeyPressed = true;
+                setTimeout(() => deleteObject(particleMesh, particleBody), 2000);
             }
         } else {
             jKeyPressed = false;

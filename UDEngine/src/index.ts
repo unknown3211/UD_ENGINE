@@ -5,7 +5,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader"; // Not used yet //
 import { logCharacterPosition } from "./ts/dev"; // Used For Logging Character Position //
-import { generateTestModel, generateTestHouse, generateTestCouch } from "./ts/objects";
+import { generateTestModel, generateTestHouse, generateTestCouch, deleteObject } from "./ts/objects";
 import * as CANNON from "cannon-es";
 import CannonDebugger from "cannon-es-debugger";
 import { World } from "cannon-es";
@@ -15,10 +15,10 @@ export var scene = new THREE.Scene();
 scene.background = new THREE.Color(0x1d1e20);
 export var world = new CANNON.World({});
 
-const cannonDebugger = CannonDebugger(scene, world, {  // ABLE TO SEE PHYSICS //
+const cannonDebugger = CannonDebugger(scene, world, {  // ABLE TO SEE Collisions //
   color: 0xaee2ff,
   scale: 3,
-});
+}); // Unhash If Want To See Collisions //
 
 // CAMERA
 export var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -76,14 +76,24 @@ new GLTFLoader().load("models/Soldier.glb", function (gltf) {
 
   characterControls = new CharacterControls(model, mixer, animationsMap, orbitControls, camera, "Idle");
 
-  const radius = 1;
+  const radius = 0.2;
   const height = 1.2;
   playerBody = new CANNON.Body({
     mass: 5,
     position: new CANNON.Vec3(0, height / 2, 0),
     shape: new CANNON.Cylinder(radius, radius, height, 10),
+    fixedRotation: true,
   });
-  world.addBody(playerBody); // Unhash If Want To Add Physics Cylinder To Character //
+  playerBody.inertia.set(0, 0, 0);
+  playerBody.invInertia.set(0, 0, 0);
+  world.addBody(playerBody); // Unhash If Want To Add Collision Cylinder To Character //
+
+  playerBody.addEventListener('collide', (event: any) => {
+    if (event.body === testBoxBody) {
+      console.log("Player Collided With Box");
+      characterControls.setPlayerFrozen(true);
+    }
+  });
 });
 
 // CONTROL KEYS
@@ -121,7 +131,7 @@ function animate() {
   }
   orbitControls.update();
   world.step(timeStep);
-  cannonDebugger.update();
+  cannonDebugger.update(); // Unhash If Want To See Collisions //
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
 }
@@ -140,7 +150,7 @@ window.addEventListener("resize", onWindowResize);
 
 function generateFloor() {
   const textureLoader = new THREE.TextureLoader();
-  const placeholder = textureLoader.load("./textures/ground/placeholder.png");
+  const placeholder = textureLoader.load("./textures/ground/t_ground_cement.png");
 
   const WIDTH = 80;
   const LENGTH = 80;
@@ -173,9 +183,9 @@ function light() {
   scene.add(dirLight);
 }
 
-// Test Box OBJECT // --- 03/31/2024 -- Detecting Collisions //
+// Collision Testing START -- 03/31/2024 //
 
-const testBoxBody = new CANNON.Body({   // COLLISIONS //
+export const testBoxBody = new CANNON.Body({   // COLLISIONS //
   mass: 1,
   shape: new CANNON.Box(new CANNON.Vec3(0.25, 0.25, 0.25)),
   fixedRotation: true,
@@ -192,12 +202,7 @@ scene.add(testBox);
 
 testBoxBody.addEventListener("collide", () => {
   console.log("Box Collided");
-  setTimeout(deleteObject);
+  setTimeout(() => deleteObject(testBox, testBoxBody));
 });
 
-export function deleteObject() {
-  if (world.bodies.includes(testBoxBody)) {
-    world.removeBody(testBoxBody);
-  }
-  scene.remove(testBox);
-}
+// Collision Testing END -- 03/31/2024 //

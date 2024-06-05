@@ -5,6 +5,8 @@
       "noImplicitAny": true,
       "module": "CommonJS",
       "target": "es5",
-      "allowJs": true
+      "allowJs": true,
+      "jsx": "react",
+      "esModuleInterop": true
     }
 }
