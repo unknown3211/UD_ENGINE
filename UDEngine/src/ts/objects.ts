@@ -2,7 +2,6 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { scene, world } from '../index';
 import * as CANNON from 'cannon-es';
 import * as THREE from "three";
-import Test from '../ui/test';
 
 export function deleteObject(object: THREE.Mesh, body: CANNON.Body) {
     if (world.bodies.includes(body)) {
@@ -47,7 +46,6 @@ export function generateTestCouch() {
         body.addEventListener("collide", () => {
             console.log("Couch Collided");
             setTimeout(() => deleteObject(couch as THREE.Mesh, body), 1000);
-            Test();
         });
     });
 }

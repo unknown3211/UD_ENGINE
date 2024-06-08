@@ -1,9 +1,9 @@
 import { CharacterControls } from "./ts/characterControls";
 import * as THREE from "three";
+import Stats from 'stats.js';
 import { CameraHelper } from "three"; // Not used yet //
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader"; // Not used yet //
 import { logCharacterPosition } from "./ts/dev"; // Used For Logging Character Position //
 import { generateTestModel, generateTestHouse, generateTestCouch, deleteObject } from "./ts/objects";
 import * as CANNON from "cannon-es";
@@ -11,14 +11,19 @@ import CannonDebugger from "cannon-es-debugger";
 import { World } from "cannon-es";
 
 // SCENE
+var loader = new THREE.TextureLoader();
 export var scene = new THREE.Scene();
-scene.background = new THREE.Color(0x1d1e20);
+scene.background = loader.load('./textures/sky/sky.png');
 export var world = new CANNON.World({});
 
-const cannonDebugger = CannonDebugger(scene, world, {  // ABLE TO SEE Collisions //
-  color: 0xaee2ff,
-  scale: 3,
-}); // Unhash If Want To See Collisions //
+//const cannonDebugger = CannonDebugger(scene, world, {  // ABLE TO SEE Collisions //
+  //color: 0xaee2ff,
+  //scale: 3,
+//}); // Unhash If Want To See Collisions //
+
+// Create a Stats panel // Unhash If Want To See Stats //
+const stats = new Stats();
+document.body.appendChild(stats.dom);
 
 // CAMERA
 export var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -58,8 +63,9 @@ generateTestHouse();
 export var characterControls: CharacterControls;
 let playerBody: CANNON.Body;
 
-new GLTFLoader().load("models/Soldier.glb", function (gltf) {
+new GLTFLoader().load("models/model.glb", function (gltf) {
   const model = gltf.scene;
+  model.rotation.y = Math.PI;
   model.traverse(function (object: any) {
     if (object.isMesh) object.castShadow = true;
   });
@@ -69,12 +75,12 @@ new GLTFLoader().load("models/Soldier.glb", function (gltf) {
   const mixer = new THREE.AnimationMixer(model);
   const animationsMap: Map<string, THREE.AnimationAction> = new Map();
   gltfAnimations
-    .filter((a) => a.name != "TPose")
+    .filter((a) => a.name != "t-pose")
     .forEach((a: THREE.AnimationClip) => {
       animationsMap.set(a.name, mixer.clipAction(a));
     });
 
-  characterControls = new CharacterControls(model, mixer, animationsMap, orbitControls, camera, "Idle");
+  characterControls = new CharacterControls(model, mixer, animationsMap, orbitControls, camera, "idle");
 
   const radius = 0.2;
   const height = 1.2;
@@ -86,7 +92,7 @@ new GLTFLoader().load("models/Soldier.glb", function (gltf) {
   });
   playerBody.inertia.set(0, 0, 0);
   playerBody.invInertia.set(0, 0, 0);
-  world.addBody(playerBody); // Unhash If Want To Add Collision Cylinder To Character //
+  //world.addBody(playerBody); // Unhash If Want To Add Collision Cylinder To Character //
 
   playerBody.addEventListener('collide', (event: any) => {
     if (event.body === testBoxBody) {
@@ -117,6 +123,7 @@ const clock = new THREE.Clock();
 const timeStep = 1 / 60;
 // ANIMATE
 function animate() {
+  stats.begin(); // Unhash If Want To See Stats //
   let mixerUpdateDelta = clock.getDelta();
   if (characterControls && characterControls.model) {
     characterControls.update(mixerUpdateDelta, keysPressed);
@@ -131,9 +138,10 @@ function animate() {
   }
   orbitControls.update();
   world.step(timeStep);
-  cannonDebugger.update(); // Unhash If Want To See Collisions //
+  //cannonDebugger.update(); // Unhash If Want To See Collisions //
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
+  stats.end(); // Unhash If Want To See Stats //
 }
 document.body.appendChild(renderer.domElement);
 animate();
