@@ -92,7 +92,7 @@ new GLTFLoader().load("models/model.glb", function (gltf) {
   });
   playerBody.inertia.set(0, 0, 0);
   playerBody.invInertia.set(0, 0, 0);
-  //world.addBody(playerBody); // Unhash If Want To Add Collision Cylinder To Character //
+  world.addBody(playerBody); // Unhash If Want To Add Collision Cylinder To Character //
 
   playerBody.addEventListener('collide', (event: any) => {
     if (event.body === testBoxBody) {
